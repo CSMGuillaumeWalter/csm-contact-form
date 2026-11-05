@@ -680,31 +680,8 @@ export class ContactForm {
       payload.append('subject', emailSubject);
     }
 
-    // 4. Champs propres et en français (zéro champ vide, zéro bruit technique)
+    // 4. Message unique et auto-suffisant (évite toute répétition de champs)
     payload.append('message', summaryLines);
-    if (isCommercial) {
-      payload.append('Demande', 'Rappel commercial');
-    } else {
-      payload.append('Demande', this.getIntentConfig()?.label || this.state.intent || '');
-    }
-    payload.append('Secteur_Region', regName || 'Non identifié');
-    payload.append('Code_Postal', cp || 'Non renseigné');
-    if (dept) payload.append('Departement', dept);
-    payload.append('Nom_Prenom', fullName);
-    payload.append('Telephone', this.state.telephone || 'Non renseigné');
-    payload.append('Email', this.state.email || 'Non renseigné');
-    if (this.state.societe) payload.append('Societe', this.state.societe);
-    if (this.state.profession) payload.append('Profession', this.getProfessionLabel());
-    if (this.state.productInterest) payload.append('Produit_ou_recette', this.state.productInterest);
-    if (this.state.commande) payload.append('Numero_commande', this.state.commande);
-    if (this.state.lot) payload.append('Numero_lot', this.state.lot);
-    if (this.state.target_position) payload.append('Poste_vise', this.state.target_position);
-    if (this.state.contract_type) payload.append('Type_contrat', this.getContractTypeLabel());
-    if (this.state.other_topic) payload.append('Sujet', this.state.other_topic);
-    if (this.state.client_type) payload.append('Type_etablissement', this.state.client_type);
-    if (this.state.pays) payload.append('Pays', this.state.pays);
-    if (this.state.is_client) payload.append('Deja_client', 'Oui');
-    if (this.state.urgency_level && this.state.urgency_level !== 'normal') payload.append('Urgence', this.state.urgency_level);
 
     if (recaptchaToken) payload.append('recaptchaToken', recaptchaToken);
 
@@ -2561,7 +2538,7 @@ export class ContactForm {
               <span class="csm-success__detail-icon">${icon('clock')}</span>
               <div>
                 <strong>Délai indicatif de réponse</strong>
-                <p>Un conseiller commercial de notre équipe ${this.state.assignedRegion?.name ? `(${escapeHtml(this.state.assignedRegion.name)})` : ''} vous recontactera sous <strong>${responseLead}</strong>.</p>
+                <p>Un conseiller commercial de notre équipe ${this.state.assignedRegion?.name ? `(${escapeHtml(this.state.assignedRegion.name)})` : ''} vous recontactera sous <span style="white-space:nowrap"><strong>${responseLead}</strong>.</span></p>
               </div>
             </div>
 
@@ -2574,7 +2551,9 @@ export class ContactForm {
             </div>
           </div>
 
-          <button type="button" class="csm-btn csm-btn--secondary" id="reset-form">${icon('refresh')} Envoyer une autre demande</button>
+          <div class="csm-success__actions">
+            <button type="button" class="csm-btn csm-btn--secondary" id="reset-form">${icon('refresh')} Envoyer une autre demande</button>
+          </div>
         </div>
       </div>`;
 
