@@ -543,7 +543,19 @@ export class ContactForm {
       </div>`;
   }
 
-  renderConsentField() {
+  renderCaptchaBadge() {
+    return `
+      <div class="csm-captcha-slot" id="csm-captcha-slot">
+        <span class="csm-saved-badge csm-saved-badge--captcha" role="status" title="Vérification de sécurité anti-robot automatique">
+          <span class="csm-saved-badge__check" aria-hidden="true">${icon('shield')}</span>
+          <span class="csm-saved-badge__text">Protection anti-robot automatique</span>
+          <span class="csm-captcha-status-dot" title="Protection active"></span>
+        </span>
+        <div id="csm-turnstile-container" class="csm-turnstile-container"></div>
+      </div>`;
+  }
+
+    renderConsentField() {
     return `
       <div class="csm-confirm-consent-box">
         <span class="csm-confirm-consent-box__icon">${icon('shield')}</span>
@@ -1790,6 +1802,7 @@ export class ContactForm {
           ${this.renderProfessionField('professionCallback')}
           ${this.renderCoordsFields(true, { phoneRequired: true })}
           ${this.config?.fields?.newsletter_optin ? this.renderDynamicField('newsletter_optin', this.config.fields.newsletter_optin) : ''}
+          ${this.renderCaptchaBadge()}
           ${this.renderConsentField()}
         </div>
       </section>`;
@@ -2149,6 +2162,7 @@ export class ContactForm {
       case 'confirm':
         return `
           ${this.renderConfirmRecap()}
+          ${this.renderCaptchaBadge()}
           ${this.renderConsentField()}`;
 
       default:
