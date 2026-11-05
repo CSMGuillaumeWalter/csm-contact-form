@@ -618,102 +618,99 @@ export class ContactForm {
     const payload = new FormData();
     const web3formsKey = this.options.web3formsKey || this.options.accessKey || '';
     const fullName = `${this.state.prenom || ''} ${this.state.nom || ''}`.trim() || 'Client CSM';
-    const isCallback = this.state.contactMode === 'callback';
 
-    const commercialName = this.state.assignedContact
-      ? `${this.state.assignedContact.prenom} ${this.state.assignedContact.nom}`
-      : (this.state.callbackCommercialChoice === 'any' ? 'N\'importe quel commercial de ce secteur' : 'Non précisé');
+    // Résolution robuste et directe du secteur géographique via le code postal
+    const cp = (this.state.postalCode || '').trim();
+    const dept = getDepartementFromPostalCode(cp);
+    const regId = getRegionFromPostalCode(cp) || this.state.assignedRegion?.id || '';
+    const regName = regId ? (REGION_LABELS[regId] || this.state.assignedRegion?.name || regId) : (this.state.assignedRegion?.name || '');
+    if (regId && (!this.state.assignedRegion || !this.state.assignedRegion.name)) {
+      this.state.assignedRegion = { id: regId, name: regName, dept: dept || '' };
+    }
 
-    // Message garanti non-vide pour Web3Forms avec enrichissement dynamique
-    const extraDetails = [];
-    if (this.state.is_client) {
-      extraDetails.push(`- Déjà client CSM Ingredients : OUI`);
-    }
-    if (this.state.urgency_level && this.state.urgency_level !== 'normal') {
-      extraDetails.push(`- Niveau d'urgence : ${this.state.urgency_level.toUpperCase()}`);
-    }
-    if (this.state.delivery_date) {
-      extraDetails.push(`- Date de livraison : ${this.state.delivery_date}`);
-    }
-    if (Array.isArray(this.state.product_family) && this.state.product_family.length > 0) {
-      extraDetails.push(`- Famille produits : ${this.state.product_family.join(', ')}`);
-    }
-    if (this.state.target_position) {
-      extraDetails.push(`- Poste visé : ${this.state.target_position}`);
-    }
-    if (this.state.contract_type) {
-      extraDetails.push(`- Type de contrat : ${this.getContractTypeLabel()}`);
-    }
-    if (this.state.other_topic) {
-      extraDetails.push(`- Sujet / Motif : ${this.state.other_topic}`);
-    }
-    if (this.state.animation_theme) {
-      extraDetails.push(`- Thème d'animation : ${this.state.animation_theme}`);
-    }
-    if (this.state.client_type) {
-      extraDetails.push(`- Type d'établissement : ${this.state.client_type}`);
-    }
-    if (this.state.pays) {
-      extraDetails.push(`- Pays : ${this.state.pays}`);
-    }
-    if (this.state.newsletter_optin) {
-      extraDetails.push(`- Communications CSM Ingrédients : OUI (Abonné Mailchimp)`);
+    const isCommercial = this.isCommercialIntent();
+    const clientCompany = this.state.societe ? `${this.state.societe} - ` : '';
+
+    // 1. Objet de l'e-mail clair et percutant
+    let emailSubject = '';
+    if (isCommercial) {
+      const locationTag = regName ? `[${regName}${dept ? ` - ${dept}` : ''}] ` : (cp ? `[CP ${cp}] ` : '');
+      emailSubject = `[CSM France] 📞 Rappel commercial ${locationTag}: ${clientCompany}${fullName}`;
     } else {
-      extraDetails.push(`- Communications CSM Ingrédients : NON`);
+      const intentLabel = this.getIntentConfig()?.label || 'Demande de contact';
+      emailSubject = `[CSM France] ${intentLabel} : ${clientCompany}${fullName}`;
     }
 
-    const detailBlock = extraDetails.length > 0 ? `\n\n--- Détails de la demande ---\n${extraDetails.join('\n')}` : '';
+    // 2. Synthèse lisible à 100% dans le corps principal (Message)
+    const regionDisplay = regName
+      ? `${regName}${dept ? ` (Département ${dept} - CP ${cp})` : ` (CP ${cp})`}`
+      : (cp ? `Code Postal ${cp}` : 'Non précisé');
 
-    const effectiveMessage = ((this.state.message || '').trim() ||
-      `Demande de rappel téléphonique.\n- Téléphone client : ${this.state.telephone || 'Non renseigné'}\n- Commercial demandé : ${commercialName}\n- Secteur / Code postal : ${this.state.postalCode || 'Non renseigné'}`) + detailBlock;
+    const summaryLines = [
+      '==================================================',
+      isCommercial ? 'DEMANDE DE RAPPEL COMMERCIAL - CSM INGREDIENTS' : 'NOUVELLE DEMANDE DE CONTACT - CSM INGREDIENTS',
+      '==================================================',
+      '',
+      `📍 SECTEUR / ZONE : ${regionDisplay}`,
+      `👤 CONTACT        : ${fullName}`,
+      this.state.societe ? `🏢 SOCIÉTÉ        : ${this.state.societe}` : null,
+      this.state.profession ? `💼 PROFESSION     : ${this.getProfessionLabel()}` : null,
+      `📞 TÉLÉPHONE      : ${this.state.telephone || 'Non renseigné'}`,
+      `✉️ E-MAIL         : ${this.state.email || 'Non renseigné'}`,
+      this.state.client_type ? `🏷️ ÉTABLISSEMENT  : ${this.state.client_type}` : null,
+      this.state.is_client ? `⭐ STATUT         : Déjà client CSM` : null,
+      '',
+      '--- MESSAGE DU CLIENT ---',
+      (this.state.message || '').trim() || '(Aucun message saisi - Demande de rappel direct)',
+      '',
+      '--------------------------------------------------',
+      `Abonnement communications CSM : ${this.state.newsletter_optin ? 'OUI' : 'NON'}`,
+      '=================================================='
+    ].filter(Boolean).join('\n');
 
+    // 3. Configuration Web3Forms
     if (web3formsKey) {
       payload.append('access_key', web3formsKey);
-      payload.append('from_name', 'CSM Ingredients France - Formulaire');
+      payload.append('from_name', 'CSM Ingredients France');
       payload.append('name', fullName);
       payload.append('phone', this.state.telephone || '');
       if (this.state.email) {
         payload.append('replyto', this.state.email);
       }
-      payload.append('subject', `[CSM France] ${isCallback ? 'Rappel demandé' : 'Message'} : ${this.state.societe ? this.state.societe + ' - ' : ''}${fullName}`);
+      payload.append('subject', emailSubject);
     }
 
-    payload.append('intent', this.state.intent || '');
-    payload.append('contactMode', this.state.contactMode || '');
-    payload.append('message', effectiveMessage);
-    payload.append('prenom', this.state.prenom);
-    payload.append('nom', this.state.nom);
-    payload.append('telephone', this.state.telephone);
-    payload.append('email', this.state.email);
-    payload.append('societe', this.state.societe);
-    payload.append('postalCode', this.state.postalCode);
-    payload.append('profession', this.getProfessionLabel());
-    payload.append('productInterest', this.state.productInterest);
-    payload.append('commande', this.state.commande);
-    payload.append('lot', this.state.lot);
-    payload.append('is_client', this.state.is_client ? 'Oui' : 'Non');
-    if (this.state.urgency_level) payload.append('urgency_level', this.state.urgency_level);
-    if (this.state.delivery_date) payload.append('delivery_date', this.state.delivery_date);
-    if (Array.isArray(this.state.product_family) && this.state.product_family.length > 0) payload.append('product_family', this.state.product_family.join(', '));
-    if (this.state.target_position) payload.append('target_position', this.state.target_position);
-    if (this.state.contract_type) payload.append('contract_type', this.state.contract_type);
-    if (this.state.other_topic) payload.append('other_topic', this.state.other_topic);
-    if (this.state.animation_theme) payload.append('animation_theme', this.state.animation_theme);
-    if (this.state.client_type) payload.append('client_type', this.state.client_type);
-    if (this.state.pays) payload.append('pays', this.state.pays);
-    if (this.state.newsletter_optin) payload.append('newsletter_optin', 'Oui');
+    // 4. Champs propres et en français (zéro champ vide, zéro bruit technique)
+    payload.append('message', summaryLines);
+    if (isCommercial) {
+      payload.append('Demande', 'Rappel commercial');
+    } else {
+      payload.append('Demande', this.getIntentConfig()?.label || this.state.intent || '');
+    }
+    payload.append('Secteur_Region', regName || 'Non identifié');
+    payload.append('Code_Postal', cp || 'Non renseigné');
+    if (dept) payload.append('Departement', dept);
+    payload.append('Nom_Prenom', fullName);
+    payload.append('Telephone', this.state.telephone || 'Non renseigné');
+    payload.append('Email', this.state.email || 'Non renseigné');
+    if (this.state.societe) payload.append('Societe', this.state.societe);
+    if (this.state.profession) payload.append('Profession', this.getProfessionLabel());
+    if (this.state.productInterest) payload.append('Produit_ou_recette', this.state.productInterest);
+    if (this.state.commande) payload.append('Numero_commande', this.state.commande);
+    if (this.state.lot) payload.append('Numero_lot', this.state.lot);
+    if (this.state.target_position) payload.append('Poste_vise', this.state.target_position);
+    if (this.state.contract_type) payload.append('Type_contrat', this.getContractTypeLabel());
+    if (this.state.other_topic) payload.append('Sujet', this.state.other_topic);
+    if (this.state.client_type) payload.append('Type_etablissement', this.state.client_type);
+    if (this.state.pays) payload.append('Pays', this.state.pays);
+    if (this.state.is_client) payload.append('Deja_client', 'Oui');
+    if (this.state.urgency_level && this.state.urgency_level !== 'normal') payload.append('Urgence', this.state.urgency_level);
 
-    payload.append('callbackChoice', this.state.callbackCommercialChoice || 'any');
-    payload.append('assignedCommercialId', this.state.assignedContact?.id || (this.state.callbackCommercialChoice === 'any' ? 'any' : ''));
-    payload.append('assignedCommercialName', commercialName);
-    payload.append('assignedRegion', this.state.assignedRegion?.id || '');
-    payload.append('assignedRegionName', this.state.assignedRegion?.name || '');
     if (recaptchaToken) payload.append('recaptchaToken', recaptchaToken);
 
-    if (this.state.attachments.length > 0) {
+    if (this.state.attachments && this.state.attachments.length > 0) {
       payload.append('pieces_jointes', this.state.attachments.map((a) => a.file.name).join(', '));
       this.state.attachments.forEach((entry, index) => {
-        // Web3Forms accepte 'attachment' pour le 1er fichier et 'attachment_1', 'attachment_2' pour les suivants
         const fieldKey = index === 0 ? 'attachment' : `attachment_${index}`;
         payload.append(fieldKey, entry.file, entry.file.name);
       });
