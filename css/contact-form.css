@@ -196,7 +196,7 @@ body {
   flex-wrap: nowrap;
   gap: 1.25rem;
   padding: 0.65rem 1.35rem;
-  margin-top: 0.25rem;
+  margin-top: auto;
   margin-bottom: 0.15rem;
   border: 1.5px solid var(--csm-border);
   border-radius: var(--csm-radius);
