@@ -1890,7 +1890,7 @@ export class ContactForm {
         <div class="csm-step-stack" style="margin-top: 1.25rem;">
           ${this.renderSavedProfileBanner()}
           <div class="csm-field">
-            <label for="message">Votre message ou précision <span class="csm-field-hint">(facultatif)</span></label>
+            <label for="message">Votre message</label>
             <textarea id="message" name="message" rows="3" placeholder="Précisez votre besoin, vos questions, ou laissez vide pour un simple rappel…">${attr(this.state.message)}</textarea>
           </div>
           <div class="csm-field-row">
@@ -1942,7 +1942,7 @@ export class ContactForm {
     const isRequired = isMessageOptional ? false : Boolean(fieldDef.required);
     const star = isRequired ? '<span aria-hidden="true">*</span>' : '';
     const fieldLabel = isMessageOptional
-      ? 'Votre message ou précision <span class="csm-field-hint">(facultatif)</span>'
+      ? 'Votre message'
       : fieldDef.label;
     const help = fieldDef.help ? `<p class="csm-field__help">${fieldDef.help}</p>` : '';
     const placeholder = isMessageOptional
@@ -2213,7 +2213,7 @@ export class ContactForm {
             ${profileBanner}
             ${this.stepHasField('message') ? `
             <div class="csm-field">
-              <label for="message">${this.isCommercialIntent() ? 'Votre message ou précision <span class="csm-field-hint">(facultatif)</span>' : 'Votre message <span aria-hidden="true">*</span>'}</label>
+              <label for="message">${this.isCommercialIntent() ? 'Votre message' : 'Votre message <span aria-hidden="true">*</span>'}</label>
               <textarea id="message" name="message" rows="3" ${this.isCommercialIntent() ? '' : 'required'} placeholder="${this.isCommercialIntent() ? 'Précisez votre besoin, vos questions, ou laissez vide pour un simple rappel…' : (this.getIntentConfig()?.messagePlaceholder || 'Décrivez votre demande…')}">${attr(this.state.message)}</textarea>
             </div>` : ''}
             ${this.stepHasField('product') ? `
