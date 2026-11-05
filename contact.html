@@ -4,17 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Contact | CSM Ingredients France</title>
-  <link rel="stylesheet" href="css/contact-form.css?v=prod-58" />
+  <link rel="stylesheet" href="css/contact-form.css?v=prod-60" />
       <style>
     /* Vue Desktop : Tout tient dans la hauteur de l'écran (100vh).
        ZÉRO double scroll de la page : tout est visible directement. */
     @media (min-width: 769px) {
       html, body {
-        height: 100vh;
-        max-height: 100vh;
+        min-height: 100vh;
         margin: 0;
         padding: 0;
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
       }
 
       body {
@@ -68,15 +68,27 @@
       }
     }
 
-    @media (min-width: 769px) and (max-height: 800px) {
+    @media (min-width: 769px) and (max-height: 820px) {
       .csm-site-header-space {
-        height: 48px;
+        height: 32px;
       }
       .csm-contact-hero img {
-        height: 90px;
+        height: 75px;
       }
       .csm-contact-page-container {
-        padding: 0.25rem 1rem 0.25rem;
+        padding: 0.2rem 1rem 0.35rem;
+      }
+    }
+
+    @media (min-width: 769px) and (max-height: 680px) {
+      .csm-site-header-space {
+        height: 14px;
+      }
+      .csm-contact-hero img {
+        height: 55px;
+      }
+      .csm-contact-page-container {
+        padding: 0.1rem 0.75rem 0.25rem;
       }
     }
 
@@ -148,7 +160,7 @@
   <script type="module">
     if (window.location.protocol === 'file:') throw new Error('Utilisez un serveur local pour tester');
 
-    import { ContactForm } from './js/form.js?v=prod-58';
+    import { ContactForm } from './js/form.js?v=prod-60';
 
     async function bootstrap() {
       const configRes = await fetch('data/form-config.json', { cache: 'no-store' }).catch(() => null);

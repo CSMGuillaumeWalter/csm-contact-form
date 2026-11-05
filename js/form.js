@@ -124,6 +124,7 @@ const ICON_SVG = {
   sparkles: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/>',
   globe: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
   fileText: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>',
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
 };
 
 const SUBMIT_INTERVAL_KEY = 'csm-contact-last-submit';
@@ -522,7 +523,7 @@ export class ContactForm {
       animation_theme: '',
       client_type: '',
       newsletter_optin: false,
-      consent: false,
+      consent: true,
       assignedContact: null,
       assignedRegion: null,
       panelContacts: [],
@@ -543,14 +544,11 @@ export class ContactForm {
 
   renderConsentField() {
     return `
-      <div class="csm-field csm-field--checkbox">
-        <label>
-          <input type="checkbox" name="consent" ${this.state.consent ? 'checked' : ''} required />
-          J'accepte la <a href="https://www.csmingredients.com/france/fr_fr/politique-de-confidentialite" target="_blank" rel="noopener">politique de confidentialité</a>
-        </label>
-        ${this.options.recaptchaSiteKey
-          ? '<p class="csm-field__help">Protection anti-spam via Google reCAPTCHA, sans clic de votre part.</p>'
-          : ''}
+      <div class="csm-confirm-consent-box">
+        <span class="csm-confirm-consent-box__icon">${icon('shield')}</span>
+        <div class="csm-confirm-consent-box__content">
+          <span>En validant votre demande ci-dessous, vous acceptez notre <a href="https://www.csmingredients.com/france/fr_fr/politique-de-confidentialite" target="_blank" rel="noopener">politique de confidentialité</a>. Vos coordonnées sont utilisées exclusivement par CSM Ingredients pour traiter votre demande.</span>
+        </div>
       </div>`;
   }
 
@@ -1070,18 +1068,13 @@ export class ContactForm {
         break;
       case 'confirm':
         this.state.contactMode = 'callback';
+        this.state.consent = true;
         {
           const attachmentError = this.validateAttachments();
           if (attachmentError) add('attachments', attachmentError);
         }
-        if (!this.state.consent) add('consent', 'Acceptez la politique de confidentialité.');
         break;
-        {
-          const attachmentError = this.validateAttachments();
-          if (attachmentError) add('attachments', attachmentError);
-        }
-        if (!this.state.consent) add('consent', 'Acceptez la politique de confidentialité.');
-        break;
+
       default:
         break;
     }
@@ -2092,11 +2085,17 @@ export class ContactForm {
                 <a href="mailto:info.france@csmingredients.com" class="csm-footer-link">info.france@csmingredients.com</a>
               </div>
             </div>
-            <div class="csm-footer-actions">
-              ${!isFirst ? `<button type="button" class="csm-btn csm-btn--secondary" data-action="back">${icon('chevronLeft')} Retour</button>` : ''}
-              ${isLast
-                ? `<button type="submit" class="csm-btn csm-btn--primary">${this.getSubmitLabel()} ${icon(this.getSubmitIcon())}</button>`
-                : `<button type="button" class="csm-btn csm-btn--primary" data-action="next">${showMap ? 'Demander un rappel' : 'Continuer'} ${icon('chevronRight')}</button>`}
+            <div class="csm-footer-actions ${isLast ? 'csm-footer-actions--confirm' : ''}">
+              ${isLast ? `
+                <div class="csm-footer-consent-note">
+                  En validant, vous acceptez la <a href="https://www.csmingredients.com/france/fr_fr/politique-de-confidentialite" target="_blank" rel="noopener">politique de confidentialité</a>
+                </div>` : ''}
+              <div class="csm-footer-buttons">
+                ${!isFirst ? `<button type="button" class="csm-btn csm-btn--secondary" data-action="back">${icon('chevronLeft')} Retour</button>` : ''}
+                ${isLast
+                  ? `<button type="submit" class="csm-btn csm-btn--primary">${this.getSubmitLabel()} ${icon(this.getSubmitIcon())}</button>`
+                  : `<button type="button" class="csm-btn csm-btn--primary" data-action="next">${showMap ? 'Demander un rappel' : 'Continuer'} ${icon('chevronRight')}</button>`}
+              </div>
             </div>
           </footer>
         </form>
@@ -2538,7 +2537,7 @@ export class ContactForm {
               <span class="csm-success__detail-icon">${icon('clock')}</span>
               <div>
                 <strong>Délai indicatif de réponse</strong>
-                <p>Un conseiller commercial de notre équipe ${this.state.assignedRegion?.name ? `(${escapeHtml(this.state.assignedRegion.name)})` : ''} vous recontactera sous <span style="white-space:nowrap"><strong>${responseLead}</strong>.</span></p>
+                <p>Un conseiller commercial de notre équipe ${this.state.assignedRegion?.name ? `(${escapeHtml(this.state.assignedRegion.name)})` : ''} vous recontactera sous <strong>${responseLead}</strong></p>
               </div>
             </div>
 
