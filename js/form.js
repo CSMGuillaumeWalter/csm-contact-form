@@ -463,7 +463,7 @@ export class ContactForm {
     this.stepDirection = 'forward';
     if (this.state.intent !== intentId) {
       this.state.intent = intentId;
-      this.state.contactMode = null;
+      this.state.contactMode = 'callback';
       this.state.callbackCommercialChoice = 'any';
       this.state.panelView = 'terrain';
       this.state.attachments = [];
@@ -527,7 +527,7 @@ export class ContactForm {
       assignedRegion: null,
       panelContacts: [],
       panelView: 'terrain',
-      contactMode: null,
+      contactMode: 'callback',
       callbackCommercialChoice: 'any',
       attachments: [],
     };
@@ -1095,25 +1095,13 @@ export class ContactForm {
         }
         break;
       case 'confirm':
-        if (this.isCommercialIntent()) {
-          if (!this.state.contactMode) {
-            add('contactMode', 'Choisissez comment contacter votre commercial.');
-          } else if (this.state.contactMode === 'callback') {
-            if (!this.state.message.trim()) add('message', 'Décrivez votre demande.');
-            if (!this.state.prenom.trim()) add('prenom', 'Indiquez votre prénom.');
-            if (!this.state.nom.trim()) add('nom', 'Indiquez votre nom.');
-            if (!this.state.telephone.trim()) add('telephone', 'Indiquez un numéro de téléphone pour le rappel.');
-            if (!this.state.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.state.email)) {
-              add('email', 'Indiquez une adresse e-mail valide.');
-            }
-            if (!this.state.profession) add('profession', 'Sélectionnez votre profession.');
-            else if (this.state.profession === 'Autre' && !this.state.professionAutre.trim()) {
-              add('professionAutre', 'Précisez votre profession.');
-            }
-            if (!this.state.consent) add('consent', 'Acceptez la politique de confidentialité.');
-          }
-          break;
+        this.state.contactMode = 'callback';
+        {
+          const attachmentError = this.validateAttachments();
+          if (attachmentError) add('attachments', attachmentError);
         }
+        if (!this.state.consent) add('consent', 'Acceptez la politique de confidentialité.');
+        break;
         {
           const attachmentError = this.validateAttachments();
           if (attachmentError) add('attachments', attachmentError);
