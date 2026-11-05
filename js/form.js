@@ -812,7 +812,7 @@ export class ContactForm {
       this.state.profession ? `💼 PROFESSION     : ${this.getProfessionLabel()}` : null,
       `📞 TÉLÉPHONE      : ${this.state.telephone || 'Non renseigné'}`,
       `✉️ E-MAIL         : ${this.state.email || 'Non renseigné'}`,
-      this.state.client_type ? `🏷️ ÉTABLISSEMENT  : ${this.state.client_type}` : null,
+      this.state.client_type ? `🏷️ ÉTABLISSEMENT  : ${this.getClientTypeLabel()}` : null,
       this.state.is_client ? `⭐ STATUT         : Déjà client CSM` : null,
       '',
       '--- MESSAGE DU CLIENT ---',
@@ -1221,7 +1221,7 @@ export class ContactForm {
         }
         if (cfg.infosFields?.includes('profession') || activeFields.includes('profession')) {
           if (!this.state.profession) add('profession', 'Sélectionnez votre profession.');
-          else if (this.state.profession === 'Autre' && !this.state.professionAutre.trim()) {
+          else if (String(this.state.profession).trim().toLowerCase() === 'autre' && !this.state.professionAutre.trim()) {
             add('professionAutre', 'Précisez votre profession.');
           }
         }
@@ -1580,18 +1580,119 @@ export class ContactForm {
       </div>`;
   }
 
+  getFieldOptionLabel(fieldId, value) {
+    if (value === undefined || value === null || value === '') return '';
+    const strVal = String(value).trim();
+    if (!strVal) return '';
+
+    // 1. Recherche dynamique dans la configuration JSON
+    const fieldDef = this.config?.fields?.[fieldId];
+    if (fieldDef?.options && Array.isArray(fieldDef.options)) {
+      const match = fieldDef.options.find((opt) => {
+        if (typeof opt === 'object' && opt !== null) {
+          return (
+            opt.id === strVal ||
+            opt.label === strVal ||
+            String(opt.id).toLowerCase() === strVal.toLowerCase() ||
+            String(opt.label).toLowerCase() === strVal.toLowerCase()
+          );
+        }
+        return opt === strVal || String(opt).toLowerCase() === strVal.toLowerCase();
+      });
+      if (match) {
+        return typeof match === 'object' ? match.label : match;
+      }
+    }
+
+    // 2. Dictionnaires de secours complets avec tous les accents et majuscules
+    const FALLBACK_LABELS = {
+      profession: {
+        'boulanger-patissier': 'Boulanger - Pâtissier',
+        'chaines': 'Chaînés',
+        'professionnel-de-la-grande-distribution': 'Professionnel de la Grande Distribution',
+        'distributeur': 'Distributeur',
+        'cash-carry': 'Cash & Carry',
+        'industriel': 'Industriel',
+        'centre-de-formation': 'Centre de formation',
+        'particulier': 'Particulier',
+        'autre': 'Autre',
+      },
+      client_type: {
+        'fournisseurs': 'Fournisseurs',
+        'exportateurs': 'Exportateurs',
+        'industriels': 'Industriels',
+        'autres': 'Autres',
+      },
+      contract_type: {
+        'cdi-cdd': 'CDI/CDD',
+        'interim': 'Intérim',
+        'stage-alternance': 'Stage/Alternance',
+      },
+      animation_theme: {
+        'animation-usa-donuts-muffins': 'Animation USA (Donuts & Muffins)',
+        'semaine-du-pain-saveurs': 'Semaine du Pain & Saveurs',
+        'brioches-viennoiseries': 'Brioches & Viennoiseries',
+        'patisserie-creative': 'Pâtisserie Créative',
+        'evenement-sur-mesure': 'Événement sur-mesure',
+      },
+      urgency_level: {
+        'normal': 'Normal (48h)',
+        'urgent': 'Urgent (24h)',
+        'critical': 'Bloquant',
+      },
+      product_family: {
+        'patisserie-premix': 'Pâtisserie & Prémix',
+        'viennoiserie': 'Viennoiserie',
+        'pains-speciaux-levains': 'Pains spéciaux & Levains',
+        'glacages-fourrages': 'Glaçages & Fourrages',
+        'matieres-grasses-margarines': 'Matières grasses & Margarines',
+        'decoration-ingredients': 'Décoration & Ingrédients',
+      },
+      preferred_channel: {
+        'telephone': 'Téléphone',
+        'e-mail': 'E-mail',
+        'rendez-vous-boutique': 'Rendez-vous boutique',
+      },
+      annual_volume: {
+        'moins-de-2-tonnes': 'Moins de 2 tonnes',
+        'entre-2-et-10-tonnes': 'Entre 2 et 10 tonnes',
+        'plus-de-10-tonnes': 'Plus de 10 tonnes',
+      },
+    };
+
+    const map = FALLBACK_LABELS[fieldId];
+    if (map) {
+      const lower = strVal.toLowerCase();
+      if (map[lower]) return map[lower];
+      if (map[strVal]) return map[strVal];
+    }
+
+    return strVal;
+  }
+
   getProfessionLabel() {
     if (!this.state.profession) return '';
-    if (this.state.profession === 'Autre' && this.state.professionAutre.trim()) {
-      return `Autre : ${this.state.professionAutre.trim()}`;
+    const raw = String(this.state.profession).trim();
+    const isAutre = raw.toLowerCase() === 'autre';
+    if (isAutre) {
+      if (this.state.professionAutre && this.state.professionAutre.trim()) {
+        return `Autre : ${this.state.professionAutre.trim()}`;
+      }
+      return 'Autre';
     }
-    return this.state.profession;
+    return this.getFieldOptionLabel('profession', raw);
+  }
+
+  getClientTypeLabel() {
+    if (!this.state.client_type) return '';
+    return this.getFieldOptionLabel('client_type', this.state.client_type);
   }
 
   syncProfessionAutreField() {
     const wrap = this.root.querySelector('[data-field="professionAutre"]');
     const input = this.root.querySelector('[name="professionAutre"]');
-    const show = this.state.profession === 'Autre';
+    const val = String(this.state.profession || '').trim().toLowerCase();
+    const show = val === 'autre';
     if (!wrap || !input) return;
     wrap.hidden = !show;
     input.toggleAttribute('required', show);
@@ -1660,15 +1761,21 @@ export class ContactForm {
         ${zoneLabel ? this.renderRecapRow('mapPin', 'Zone', zoneLabel) : ''}
         ${this.renderRecapRow('user', 'Contact', contactParts.join(' · '))}
         ${this.state.societe ? this.renderRecapRow('building', 'Établissement', this.state.societe) : ''}
-        ${this.state.client_type ? this.renderRecapRow('briefcase', "Type d'établissement", this.state.client_type) : ''}
+        ${this.state.client_type ? this.renderRecapRow('briefcase', "Type d'établissement", this.getClientTypeLabel()) : ''}
         ${this.state.pays ? this.renderRecapRow('globe', 'Pays', this.state.pays) : ''}
         ${this.state.other_topic ? this.renderRecapRow('message', 'Sujet', this.state.other_topic) : ''}
         ${this.state.target_position ? this.renderRecapRow('userPlus', 'Poste visé', this.state.target_position) : ''}
         ${this.state.contract_type ? this.renderRecapRow('fileText', 'Type de contrat', this.getContractTypeLabel()) : ''}
         ${this.renderRecapRow('briefcase', 'Profession', this.getProfessionLabel())}
-        ${this.state.productInterest ? this.renderRecapRow('flask', 'Produit', this.state.productInterest) : ''}
+        ${this.state.animation_theme ? this.renderRecapRow('sparkles', "Thème d'animation", this.getFieldOptionLabel('animation_theme', this.state.animation_theme)) : ''}
+        ${this.state.product_family ? this.renderRecapRow('flask', 'Famille de produits', Array.isArray(this.state.product_family) ? this.state.product_family.map(f => this.getFieldOptionLabel('product_family', f)).join(', ') : this.getFieldOptionLabel('product_family', this.state.product_family)) : ''}
+        ${this.state.productInterest || this.state.product ? this.renderRecapRow('flask', 'Produit', this.state.productInterest || this.state.product) : ''}
+        ${this.state.urgency_level ? this.renderRecapRow('clock', "Niveau d'urgence", this.getFieldOptionLabel('urgency_level', this.state.urgency_level)) : ''}
+        ${this.state.delivery_date ? this.renderRecapRow('clock', 'Date souhaitée', this.state.delivery_date) : ''}
         ${this.state.commande ? this.renderRecapRow('truck', 'Commande', this.state.commande) : ''}
         ${this.state.lot ? this.renderRecapRow('paperclip', 'Lot', this.state.lot) : ''}
+        ${this.state.annual_volume ? this.renderRecapRow('briefcase', 'Volume annuel', this.getFieldOptionLabel('annual_volume', this.state.annual_volume)) : ''}
+        ${this.state.preferred_channel ? this.renderRecapRow('phone', 'Canal préféré', this.getFieldOptionLabel('preferred_channel', this.state.preferred_channel)) : ''}
         ${messagePreview ? `
         <div class="csm-confirm-recap__message">
           <p class="csm-confirm-recap__message-label">${icon('message')} Votre message</p>
@@ -1681,12 +1788,7 @@ export class ContactForm {
 
   getContractTypeLabel() {
     if (!this.state.contract_type) return '';
-    const map = {
-      'cdi-cdd': 'CDI/CDD',
-      'interim': 'Intérim',
-      'stage-alternance': 'Stage/Alternance',
-    };
-    return map[this.state.contract_type] || this.state.contract_type;
+    return this.getFieldOptionLabel('contract_type', this.state.contract_type);
   }
 
   getSlotLabel(slotId) {
@@ -1835,9 +1937,17 @@ export class ContactForm {
 
   renderDynamicField(fieldId, fieldDef) {
     const val = this.state[fieldId] ?? fieldDef.default ?? '';
-    const star = fieldDef.required ? '<span aria-hidden="true">*</span>' : '';
+    const isCommercial = this.isCommercialIntent();
+    const isMessageOptional = fieldId === 'message' && isCommercial;
+    const isRequired = isMessageOptional ? false : Boolean(fieldDef.required);
+    const star = isRequired ? '<span aria-hidden="true">*</span>' : '';
+    const fieldLabel = isMessageOptional
+      ? 'Votre message ou précision <span class="csm-field-hint">(facultatif)</span>'
+      : fieldDef.label;
     const help = fieldDef.help ? `<p class="csm-field__help">${fieldDef.help}</p>` : '';
-    const placeholder = fieldDef.placeholder ? `placeholder="${attr(fieldDef.placeholder)}"` : '';
+    const placeholder = isMessageOptional
+      ? 'placeholder="Précisez votre besoin, vos questions, ou laissez vide pour un simple rappel…"'
+      : (fieldDef.placeholder ? `placeholder="${attr(fieldDef.placeholder)}"` : '');
     const colClass = `csm-col--${fieldDef.col || 'full'}`;
 
     // Condition d'affichage (ex: is_client=true)
@@ -1963,13 +2073,15 @@ export class ContactForm {
       case 'textarea':
         return `
           <div class="csm-field ${colClass}" data-field="${fieldId}" ${hiddenAttr}>
-            <label for="f_${fieldId}">${fieldDef.label} ${star}</label>
-            <textarea id="f_${fieldId}" name="${fieldId}" rows="${fieldDef.rows || 3}" ${fieldDef.required ? 'required' : ''} ${placeholder}>${attr(val)}</textarea>
+            <label for="f_${fieldId}">${fieldLabel} ${star}</label>
+            <textarea id="f_${fieldId}" name="${fieldId}" rows="${fieldDef.rows || 3}" ${isRequired ? 'required' : ''} ${placeholder}>${attr(val)}</textarea>
             ${help}
           </div>`;
 
       case 'select': {
         const selectOpts = fieldDef.options || [];
+        const isProfession = fieldId === 'profession';
+        const showAutre = isProfession && String(val || '').trim().toLowerCase() === 'autre';
         return `
           <div class="csm-field ${colClass}" data-field="${fieldId}" ${hiddenAttr}>
             <label for="f_${fieldId}">${fieldDef.label} ${star}</label>
@@ -1978,11 +2090,17 @@ export class ContactForm {
               ${selectOpts.map((opt) => {
                 const oVal = typeof opt === 'object' ? opt.id : opt;
                 const oLbl = typeof opt === 'object' ? opt.label : opt;
-                return `<option value="${attr(oVal)}" ${val === oVal ? 'selected' : ''}>${oLbl}</option>`;
+                const isSelected = val === oVal || val === oLbl || (typeof val === 'string' && val.toLowerCase() === String(oVal).toLowerCase());
+                return `<option value="${attr(oVal)}" ${isSelected ? 'selected' : ''}>${oLbl}</option>`;
               }).join('')}
             </select>
             ${help}
-          </div>`;
+          </div>
+          ${isProfession ? `
+          <div class="csm-field csm-field--followup ${colClass}" data-field="professionAutre" ${showAutre ? '' : 'hidden'}>
+            <label for="professionAutre">Précisez <span aria-hidden="true">*</span></label>
+            <input type="text" id="professionAutre" name="professionAutre" value="${attr(this.state.professionAutre)}" placeholder="Votre métier ou fonction" ${showAutre ? 'required' : ''} autocomplete="organization-title" />
+          </div>` : ''}`;
       }
 
       case 'file':
@@ -2095,8 +2213,8 @@ export class ContactForm {
             ${profileBanner}
             ${this.stepHasField('message') ? `
             <div class="csm-field">
-              <label for="message">Votre message <span aria-hidden="true">*</span></label>
-              <textarea id="message" name="message" rows="3" required placeholder="${this.getIntentConfig()?.messagePlaceholder || 'Décrivez votre demande…'}">${attr(this.state.message)}</textarea>
+              <label for="message">${this.isCommercialIntent() ? 'Votre message ou précision <span class="csm-field-hint">(facultatif)</span>' : 'Votre message <span aria-hidden="true">*</span>'}</label>
+              <textarea id="message" name="message" rows="3" ${this.isCommercialIntent() ? '' : 'required'} placeholder="${this.isCommercialIntent() ? 'Précisez votre besoin, vos questions, ou laissez vide pour un simple rappel…' : (this.getIntentConfig()?.messagePlaceholder || 'Décrivez votre demande…')}">${attr(this.state.message)}</textarea>
             </div>` : ''}
             ${this.stepHasField('product') ? `
             <div class="csm-field">
@@ -2320,7 +2438,7 @@ export class ContactForm {
         this.state[name] = el.type === 'checkbox' ? el.checked : el.value;
         if (name === 'profession') {
           this.syncProfessionAutreField();
-          if (this.state.profession !== 'Autre') this.clearErrorFields('professionAutre');
+          if (String(this.state.profession || '').trim().toLowerCase() !== 'autre') this.clearErrorFields('professionAutre');
         }
         this.clearControlError(el);
         if (name === 'postalCode') {
