@@ -644,25 +644,10 @@ export class ContactForm {
         if (this.state.productInterest) specificDetails.push(`Produit ou recette : ${this.state.productInterest}`);
         break;
 
-      case 'qualite_livraison':
-        subject = '[CSM Ingredients France] Prise en charge de votre signalement qualité / livraison';
-        introLead = 'Nous avons bien pris en compte votre signalement concernant une livraison ou un produit CSM Ingredients.';
-        treatmentInfo = 'Notre service Qualité & Logistique examine votre dossier en priorité. Un responsable vous apportera une réponse par e-mail ou par téléphone dans les plus brefs délais.';
-        if (this.state.commande) specificDetails.push(`Numéro de commande : ${this.state.commande}`);
-        if (this.state.lot) specificDetails.push(`Numéro de lot : ${this.state.lot}`);
-        break;
-
-      case 'animation_magasin':
-        subject = '[CSM Ingredients France] Confirmation : Votre projet d\'animation commerciale';
-        introLead = 'Nous confirmons la bonne réception de votre demande d\'animation en point de vente ou de fourniture de matériel promotionnel.';
-        treatmentInfo = 'Notre responsable d\'animation commerciale régionale va analyser votre demande et vous recontactera par e-mail ou par téléphone pour planifier l\'opération.';
-        if (locationStr) specificDetails.push(`Secteur du point de vente : ${locationStr}`);
-        break;
-
       case 'proposition':
         subject = '[CSM Ingredients France] Confirmation : Réception de votre proposition commerciale';
         introLead = 'Nous vous remercions pour l\'intérêt que vous portez à CSM Ingredients France et confirmons la réception de votre proposition.';
-        treatmentInfo = 'Votre offre a été transmise aux services Achats et Développement concernés. Si votre proposition répond à nos besoins actuels, nos équipes reviendront vers vous par e-mail.';
+        treatmentInfo = 'Votre offre a été transmise aux services concernés. Nos équipes reviendront vers vous par e-mail ou par téléphone.';
         if (this.state.other_topic) specificDetails.push(`Sujet de la proposition : ${this.state.other_topic}`);
         break;
 
@@ -690,8 +675,7 @@ export class ContactForm {
       '',
       introLead,
       '',
-      `ℹ️ MODALITÉS DE TRAITEMENT :`,
-      treatmentInfo,
+      `ℹ️ ${treatmentInfo}`,
       '',
       '==================================================',
       'RÉCAPITULATIF DE VOTRE DEMANDE',
@@ -739,8 +723,7 @@ export class ContactForm {
       
       <div style="background-color: #eef6fb; border-left: 4px solid #007cbd; padding: 14px 18px; border-radius: 4px; margin: 20px 0;">
         <p style="margin: 0; font-size: 14px; color: #0369a1; font-weight: 500;">
-          ℹ️ <strong>Traitement de votre demande :</strong><br/>
-          ${treatmentInfo}
+          ℹ️ ${treatmentInfo}
         </p>
       </div>
 
