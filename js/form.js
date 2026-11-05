@@ -1201,7 +1201,8 @@ export class ContactForm {
         if (activeFields.includes('email') && (!this.state.email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.state.email))) {
           add('email', 'Indiquez une adresse e-mail valide.');
         }
-        if (activeFields.includes('message') && !this.state.message?.trim()) {
+        const isCommercial = this.isCommercialIntent();
+        if (activeFields.includes('message') && !isCommercial && !this.state.message?.trim()) {
           add('message', 'Décrivez votre demande.');
         }
         if (cfg.infosFields?.includes('coords')) {
@@ -1787,8 +1788,8 @@ export class ContactForm {
         <div class="csm-step-stack" style="margin-top: 1.25rem;">
           ${this.renderSavedProfileBanner()}
           <div class="csm-field">
-            <label for="message">Votre message ou motif de rappel <span aria-hidden="true">*</span></label>
-            <textarea id="message" name="message" rows="3" required placeholder="Précisez votre demande ou vos questions…">${attr(this.state.message)}</textarea>
+            <label for="message">Votre message ou précision <span class="csm-field-hint">(facultatif)</span></label>
+            <textarea id="message" name="message" rows="3" placeholder="Précisez votre besoin, vos questions, ou laissez vide pour un simple rappel…">${attr(this.state.message)}</textarea>
           </div>
           <div class="csm-field-row">
             ${this.renderSocieteField()}
@@ -2183,6 +2184,9 @@ export class ContactForm {
          </span>`
       : '';
 
+    const isLastStep = this.state.step === steps.length - 1;
+    const captchaBadgeHtml = isLastStep ? this.renderCaptchaBadge() : '';
+
     return `
       <div class="csm-wizard__progress" role="navigation" aria-label="Progression du formulaire">
         ${steps
@@ -2208,7 +2212,7 @@ export class ContactForm {
       <div class="csm-wizard__step-label-row">
         <span class="csm-wizard__step-label">Étape ${this.state.step + 1} / ${steps.length} · ${STEP_LABELS[currentStepId] || ''}</span>
         ${savedBadgeHtml}
-        ${this.renderCaptchaBadge()}
+        ${captchaBadgeHtml}
       </div>`;
   }
 
