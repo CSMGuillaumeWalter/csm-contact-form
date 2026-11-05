@@ -545,14 +545,12 @@ export class ContactForm {
 
   renderCaptchaBadge() {
     return `
-      <div class="csm-captcha-slot" id="csm-captcha-slot">
-        <span class="csm-saved-badge csm-saved-badge--captcha" role="status" title="Vérification de sécurité anti-robot automatique">
-          <span class="csm-saved-badge__check" aria-hidden="true">${icon('shield')}</span>
-          <span class="csm-saved-badge__text">Protection anti-robot automatique</span>
-          <span class="csm-captcha-status-dot" title="Protection active"></span>
-        </span>
-        <div id="csm-turnstile-container" class="csm-turnstile-container"></div>
-      </div>`;
+      <span class="csm-saved-badge csm-saved-badge--captcha" role="status" title="Protection anti-robot automatique active (Conforme RGPD)">
+        <span class="csm-saved-badge__check" aria-hidden="true">${icon('shield')}</span>
+        <span class="csm-saved-badge__text">Protection anti-robot</span>
+        <span class="csm-captcha-status-dot" title="Protection active"></span>
+      </span>
+      <div id="csm-turnstile-container" class="csm-turnstile-hidden-slot" aria-hidden="true"></div>`;
   }
 
     renderConsentField() {
@@ -560,7 +558,7 @@ export class ContactForm {
       <div class="csm-confirm-consent-box">
         <span class="csm-confirm-consent-box__icon">${icon('shield')}</span>
         <div class="csm-confirm-consent-box__content">
-          <span>En validant votre demande ci-dessous, vous acceptez notre <a href="https://www.csmingredients.com/france/fr_fr/politique-de-confidentialite" target="_blank" rel="noopener">politique de confidentialité</a>. Vos coordonnées sont utilisées exclusivement par CSM Ingredients pour traiter votre demande.</span>
+          <span>En validant votre demande ci-dessous, vous acceptez notre <a href="https://www.csmingredients.com/france/fr_fr/generals/politique-de-confidentialite" target="_blank" rel="noopener">politique de confidentialité</a>. Vos coordonnées sont utilisées exclusivement par CSM Ingredients pour traiter votre demande.</span>
         </div>
       </div>`;
   }
@@ -1802,7 +1800,6 @@ export class ContactForm {
           ${this.renderProfessionField('professionCallback')}
           ${this.renderCoordsFields(true, { phoneRequired: true })}
           ${this.config?.fields?.newsletter_optin ? this.renderDynamicField('newsletter_optin', this.config.fields.newsletter_optin) : ''}
-          ${this.renderCaptchaBadge()}
           ${this.renderConsentField()}
         </div>
       </section>`;
@@ -2162,7 +2159,6 @@ export class ContactForm {
       case 'confirm':
         return `
           ${this.renderConfirmRecap()}
-          ${this.renderCaptchaBadge()}
           ${this.renderConsentField()}`;
 
       default:
@@ -2212,6 +2208,7 @@ export class ContactForm {
       <div class="csm-wizard__step-label-row">
         <span class="csm-wizard__step-label">Étape ${this.state.step + 1} / ${steps.length} · ${STEP_LABELS[currentStepId] || ''}</span>
         ${savedBadgeHtml}
+        ${this.renderCaptchaBadge()}
       </div>`;
   }
 
@@ -2261,7 +2258,7 @@ export class ContactForm {
             <div class="csm-footer-actions ${isLast ? 'csm-footer-actions--confirm' : ''}">
               ${isLast ? `
                 <div class="csm-footer-consent-note">
-                  En validant, vous acceptez la <a href="https://www.csmingredients.com/france/fr_fr/politique-de-confidentialite" target="_blank" rel="noopener">politique de confidentialité</a>
+                  En validant, vous acceptez la <a href="https://www.csmingredients.com/france/fr_fr/generals/politique-de-confidentialite" target="_blank" rel="noopener">politique de confidentialité</a>
                 </div>` : ''}
               <div class="csm-footer-buttons">
                 ${!isFirst ? `<button type="button" class="csm-btn csm-btn--secondary" data-action="back">${icon('chevronLeft')} Retour</button>` : ''}
