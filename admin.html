@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Éditeur données commerciaux | CSM</title>
+  <link rel="stylesheet" href="css/contact-form.css" />
+  <style>
+    .admin-page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    .admin-toolbar { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .admin-editor {
+      width: 100%;
+      min-height: 70vh;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.9rem;
+      padding: 1rem;
+      border: 1px solid var(--csm-border);
+      border-radius: var(--csm-radius);
+      background: #0f1720;
+      color: #e8eef4;
+      line-height: 1.45;
+      resize: vertical;
+    }
+    .admin-status { min-height: 1.5rem; font-weight: 600; }
+    .admin-status.is-ok { color: var(--csm-green); }
+    .admin-status.is-error { color: #b00020; }
+    .admin-help { color: var(--csm-muted); font-size: 0.92rem; }
+  </style>
+</head>
+<body>
+  <main class="admin-page">
+    <h1>Administration & Configuration CSM</h1>
+    
+    <div style="background:#eef6fb;border:1.5px solid #007cbd;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem;color:#003c61;line-height:1.5;">
+      <h3 style="margin:0 0 0.35rem 0;color:#007cbd;font-size:1.05rem;">Nouveau : Pilotez tout depuis Excel sans toucher au code</h3>
+      <p style="margin:0;">Vous pouvez modifier les commerciaux, ajouter des champs, changer les motifs ou le thème directement dans le fichier <strong>Config-CSM-Formulaire.xlsx</strong> puis double-cliquer sur <strong>ACTUALISER-DONNEES.bat</strong>.</p>
+    </div>
+
+    <div class="admin-toolbar" style="align-items:center;">
+      <label for="file-select" style="font-weight:600;font-size:0.95rem;">Fichier à éditer :</label>
+      <select id="file-select" style="padding:0.5rem 0.75rem;border-radius:8px;border:1px solid var(--csm-border);font-family:inherit;font-weight:600;">
+        <option value="data/commerciaux.json">Commerciaux & Carte (commerciaux.json)</option>
+        <option value="data/form-config.json">Champs, Motifs & Thème (form-config.json)</option>
+      </select>
+      <button type="button" class="csm-btn csm-btn--secondary" id="reload">Recharger</button>
+      <button type="button" class="csm-btn csm-btn--primary" id="validate">Valider la syntaxe</button>
+      <button type="button" class="csm-btn csm-btn--primary" id="download">Télécharger le JSON</button>
+      <a class="csm-btn csm-btn--secondary" href="contact.html">Voir le formulaire</a>
+    </div>
+
+    <div id="file-protocol-warning" hidden></div>
+    <p id="status" class="admin-status" role="status" aria-live="polite"></p>
+    <textarea id="editor" class="admin-editor" spellcheck="false" aria-label="Contenu JSON"></textarea>
+  </main>
+
+  <script>
+    if (window.location.protocol === 'file:') {
+      const box = document.getElementById('file-protocol-warning');
+      box.hidden = false;
+      box.innerHTML =
+        '<p role="alert" style="padding:1rem;border:1px solid #b00020;border-radius:12px;background:#fff5f5;color:#7a0015;">' +
+        '<strong>Important :</strong> En protocole <code>file://</code>, les navigateurs bloquent la lecture directe des fichiers.<br>' +
+        'Pour tester l\'éditeur, lancez <code>LANCER-LE-FORMULAIRE.bat</code> puis ouvrez <a href="http://127.0.0.1:3000/admin.html">http://127.0.0.1:3000/admin.html</a>.' +
+        '</p>';
+    }
+  </script>
+
+  <script type="module">
+    if (window.location.protocol === 'file:') throw new Error('Utilisez un serveur local');
+
+    const editor = document.getElementById('editor');
+    const status = document.getElementById('status');
+    const fileSelect = document.getElementById('file-select');
+
+    async function load() {
+      const target = fileSelect.value;
+      try {
+        const res = await fetch(target, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        editor.value = JSON.stringify(json, null, 2);
+        setStatus(`Fichier ${target} chargé avec succès.`, 'ok');
+      } catch (err) {
+        setStatus(`Erreur lors du chargement : ${err.message}`, 'error');
+      }
+    }
+
+    function setStatus(msg, type = '') {
+      status.textContent = msg;
+      status.className = `admin-status ${type ? `is-${type}` : ''}`;
+    }
+
+    function validateJson() {
+      try {
+        const parsed = JSON.parse(editor.value);
+        setStatus('JSON valide et bien formé !', 'ok');
+        return parsed;
+      } catch (err) {
+        setStatus(`Erreur de syntaxe JSON : ${err.message}`, 'error');
+        return null;
+      }
+    }
+
+    document.getElementById('validate').addEventListener('click', validateJson);
+
+    document.getElementById('download').addEventListener('click', () => {
+      const parsed = validateJson();
+      if (!parsed) return;
+      const filename = fileSelect.value.split('/').pop();
+      const blob = new Blob([JSON.stringify(parsed, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      setStatus(`Fichier ${filename} téléchargé.`, 'ok');
+    });
+
+    fileSelect.addEventListener('change', load);
+    document.getElementById('reload').addEventListener('click', load);
+    load();
+  </script>
+</body>
+</html>

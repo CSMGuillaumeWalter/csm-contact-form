@@ -1,0 +1,593 @@
+{
+  "theme": {
+    "primaryColor": "#007cbd",
+    "primaryDark": "#005a8f",
+    "primarySoft": "#eef6fb",
+    "secondaryColor": "#2e9a4c",
+    "secondaryDark": "#1e7538",
+    "secondarySoft": "#e8f6ec",
+    "technicoColor": "#e8b422",
+    "borderRadius": "12px",
+    "fontFamily": "\"Segoe UI\", system-ui, -apple-system, sans-serif"
+  },
+  "general": {
+    "responseTimeLead": "24 à 48h ouvrées",
+    "emergencyPhone": "0 800 616 816",
+    "emergencyEmail": "info.france@csmingredients.com",
+    "successTitle": "Merci, votre demande a bien été transmise",
+    "successLead": "Notre équipe CSM Ingredients France a bien pris en compte votre message."
+  },
+  "intents": [
+    {
+      "id": "contact_commercial",
+      "icon": "mapPin",
+      "label": "Contacter un commercial",
+      "description": "Être rappelé ou mis en relation avec le conseiller CSM de votre secteur",
+      "enabled": true,
+      "steps": [
+        "intent",
+        "infos",
+        "confirm"
+      ],
+      "fields": [
+        "postal",
+        "message",
+        "societe",
+        "profession",
+        "prenom",
+        "nom",
+        "telephone",
+        "email",
+        "newsletter_optin"
+      ]
+    },
+    {
+      "id": "conseil_produit",
+      "icon": "flask",
+      "label": "Question produit, recette ou disponibilité",
+      "description": "Fiche technique, conseil d'utilisation d'un ingrédient, recette, disponibilité d'un produit",
+      "enabled": true,
+      "steps": [
+        "intent",
+        "infos",
+        "confirm"
+      ],
+      "fields": [
+        "is_client",
+        "product_family",
+        "product",
+        "message",
+        "nom",
+        "prenom",
+        "societe",
+        "profession",
+        "telephone",
+        "email",
+        "postal",
+        "attachments",
+        "newsletter_optin"
+      ],
+      "attachments": {
+        "label": "Photo, recette ou document",
+        "help": "Photo produit, recette, étiquette… JPG, PNG ou PDF. 5 Mo max, 3 fichiers max.",
+        "accept": ".pdf,.jpg,.jpeg,.png,.webp",
+        "maxFiles": 3,
+        "maxSizeMb": 5
+      }
+    },
+    {
+      "id": "qualite_livraison",
+      "icon": "truck",
+      "label": "Qualité ou livraison",
+      "description": "Réclamation qualité produit, suivi de livraison, conformité de commande",
+      "enabled": false,
+      "steps": [
+        "intent",
+        "infos",
+        "confirm"
+      ],
+      "fields": [
+        "urgency_level",
+        "is_client",
+        "commande",
+        "lot",
+        "delivery_date",
+        "message",
+        "nom",
+        "prenom",
+        "societe",
+        "telephone",
+        "email",
+        "postal",
+        "attachments",
+        "newsletter_optin"
+      ],
+      "attachments": {
+        "label": "Photo, bon de livraison ou document",
+        "help": "Photo du défaut, BL, étiquette lot… JPG, PNG ou PDF. 5 Mo max, 3 fichiers max.",
+        "accept": ".pdf,.jpg,.jpeg,.png,.webp",
+        "maxFiles": 3,
+        "maxSizeMb": 5
+      }
+    },
+    {
+      "id": "animation_magasin",
+      "icon": "sparkles",
+      "label": "Organiser une animation",
+      "description": "Animations en magasin (GMS & artisans) avec nos mixes & recettes exclusives CSM (Animation USA, Semaine du Pain...). Service gratuit.",
+      "enabled": false,
+      "steps": [
+        "intent",
+        "infos",
+        "confirm"
+      ],
+      "fields": [
+        "is_client",
+        "client_type",
+        "animation_theme",
+        "delivery_date",
+        "message",
+        "societe",
+        "profession",
+        "prenom",
+        "nom",
+        "telephone",
+        "email",
+        "postal",
+        "newsletter_optin"
+      ]
+    },
+    {
+      "id": "proposition",
+      "icon": "briefcase",
+      "label": "Proposition commerciale",
+      "description": "Fournisseur de matières premières, matériel ou prestation de service",
+      "enabled": true,
+      "steps": [
+        "intent",
+        "infos",
+        "confirm"
+      ],
+      "fields": [
+        "societe",
+        "client_type",
+        "pays",
+        "postal",
+        "nom",
+        "prenom",
+        "telephone",
+        "email",
+        "message"
+      ]
+    },
+    {
+      "id": "candidature",
+      "icon": "userPlus",
+      "label": "Candidature spontanée",
+      "description": "Rejoindre l'équipe CSM Ingredients France (Commerce, R&D, Marketing, Logistique)",
+      "enabled": true,
+      "steps": [
+        "intent",
+        "infos",
+        "confirm"
+      ],
+      "fields": [
+        "target_position",
+        "contract_type",
+        "nom",
+        "prenom",
+        "telephone",
+        "email",
+        "postal",
+        "message",
+        "attachments"
+      ],
+      "attachments": {
+        "label": "CV obligatoire & lettre de motivation",
+        "help": "CV obligatoire (PDF, DOC ou DOCX). Lettre ou portfolio facultatifs. 5 Mo max, 3 fichiers max.",
+        "accept": ".pdf,.doc,.docx,.jpg,.jpeg,.png",
+        "maxFiles": 3,
+        "maxSizeMb": 5,
+        "required": true,
+        "requiredMessage": "Veuillez joindre votre CV (PDF ou Word) pour postuler."
+      }
+    },
+    {
+      "id": "autre",
+      "icon": "helpCircle",
+      "label": "Autre demande",
+      "description": "Presse, communication, questions diverses",
+      "enabled": true,
+      "steps": [
+        "intent",
+        "infos",
+        "confirm"
+      ],
+      "fields": [
+        "other_topic",
+        "societe",
+        "nom",
+        "prenom",
+        "telephone",
+        "email",
+        "postal",
+        "message",
+        "attachments"
+      ],
+      "attachments": {
+        "label": "Photo, bon de livraison ou document",
+        "help": "Photo, bon de livraison, réclamation ou document… JPG, PNG, WEBP ou PDF. 5 Mo max, 3 fichiers max.",
+        "accept": ".pdf,.jpg,.jpeg,.png,.webp",
+        "maxFiles": 3,
+        "maxSizeMb": 5
+      }
+    }
+  ],
+  "fields": {
+    "is_client": {
+      "type": "toggle",
+      "label": "Déjà client CSM Ingredients ?",
+      "col": "full",
+      "required": false
+    },
+    "client_type": {
+      "type": "select",
+      "label": "Type d'établissement",
+      "col": "half",
+      "required": false,
+      "placeholder": "Sélectionnez votre établissement...",
+      "help": "Type d'établissement ou profil",
+      "options": [
+        {
+          "id": "fournisseurs",
+          "label": "Fournisseurs"
+        },
+        {
+          "id": "exportateurs",
+          "label": "Exportateurs"
+        },
+        {
+          "id": "industriels",
+          "label": "Industriels"
+        },
+        {
+          "id": "autres",
+          "label": "Autres"
+        }
+      ]
+    },
+    "pays": {
+      "type": "text",
+      "label": "Pays",
+      "col": "half",
+      "required": false,
+      "placeholder": "Ex. France, Belgique, Espagne…",
+      "help": "Pays de domiciliation de votre entreprise"
+    },
+    "animation_theme": {
+      "type": "select",
+      "label": "Thème de l'animation souhaité",
+      "col": "half",
+      "required": true,
+      "placeholder": "Choisissez votre animation...",
+      "help": "Concept d'animation en point de vente offert par CSM Ingredients",
+      "options": [
+        {
+          "id": "animation-usa-donuts-muffins",
+          "label": "Animation USA (Donuts & Muffins)"
+        },
+        {
+          "id": "semaine-du-pain-saveurs",
+          "label": "Semaine du Pain & Saveurs"
+        },
+        {
+          "id": "brioches-viennoiseries",
+          "label": "Brioches & Viennoiseries"
+        },
+        {
+          "id": "patisserie-creative",
+          "label": "Pâtisserie Créative"
+        },
+        {
+          "id": "evenement-sur-mesure",
+          "label": "Événement sur-mesure"
+        }
+      ]
+    },
+    "delivery_date": {
+      "type": "text",
+      "label": "Période ou date souhaitée",
+      "col": "half",
+      "required": false,
+      "placeholder": "Ex. Novembre, Printemps 2026, ou date précise",
+      "help": "Période prévisionnelle pour l'animation ou date de livraison"
+    },
+    "product_family": {
+      "type": "tags",
+      "label": "Famille de produits concernée",
+      "col": "half",
+      "required": false,
+      "help": "Sélectionnez une ou plusieurs catégories",
+      "options": [
+        {
+          "id": "patisserie-premix",
+          "label": "Pâtisserie & Prémix"
+        },
+        {
+          "id": "viennoiserie",
+          "label": "Viennoiserie"
+        },
+        {
+          "id": "pains-speciaux-levains",
+          "label": "Pains spéciaux & Levains"
+        },
+        {
+          "id": "glacages-fourrages",
+          "label": "Glaçages & Fourrages"
+        },
+        {
+          "id": "matieres-grasses-margarines",
+          "label": "Matières grasses & Margarines"
+        },
+        {
+          "id": "decoration-ingredients",
+          "label": "Décoration & Ingrédients"
+        }
+      ]
+    },
+    "product": {
+      "type": "text",
+      "label": "Nom ou référence du produit",
+      "col": "half",
+      "required": false,
+      "placeholder": "Ex. Mix Donut, Marguerite Royale…",
+      "help": "Indiquez le produit ou la référence CSM concernée"
+    },
+    "urgency_level": {
+      "type": "urgency",
+      "label": "Niveau d'urgence",
+      "col": "full",
+      "required": true,
+      "help": "Délai de traitement souhaité",
+      "options": [
+        {
+          "id": "normal",
+          "label": "Normal (48h)",
+          "color": "neutral"
+        },
+        {
+          "id": "urgent",
+          "label": "Urgent (24h)",
+          "color": "warning"
+        },
+        {
+          "id": "critical",
+          "label": "Bloquant",
+          "color": "danger"
+        }
+      ]
+    },
+    "commande": {
+      "type": "text",
+      "label": "Numéro de commande",
+      "col": "half",
+      "required": false,
+      "placeholder": "Ex. CMD-2026-9874",
+      "help": "Optionnel, visible sur votre bon de commande ou facture"
+    },
+    "lot": {
+      "type": "text",
+      "label": "Numéro de lot",
+      "col": "half",
+      "required": false,
+      "placeholder": "Ex. L-24B089",
+      "help": "Indiqué sur l'étiquette de l'emballage produit"
+    },
+    "target_position": {
+      "type": "text",
+      "label": "Métier ou poste recherché",
+      "col": "half",
+      "required": true,
+      "placeholder": "Ex. Technico-commercial, R&D, Logistique…",
+      "help": "Intitulé de poste ou domaine de compétences"
+    },
+    "contract_type": {
+      "type": "select",
+      "label": "Type de contrat",
+      "col": "half",
+      "required": true,
+      "placeholder": "Choisissez un type de contrat…",
+      "help": "Type de contrat souhaité",
+      "options": [
+        {
+          "id": "cdi-cdd",
+          "label": "CDI/CDD"
+        },
+        {
+          "id": "interim",
+          "label": "Intérim"
+        },
+        {
+          "id": "stage-alternance",
+          "label": "Stage/Alternance"
+        }
+      ]
+    },
+    "other_topic": {
+      "type": "text",
+      "label": "Sujet de votre demande",
+      "col": "half",
+      "required": true,
+      "placeholder": "Ex. Partenariat, Presse, Fournisseur…",
+      "help": "Objet principal de votre message"
+    },
+    "message": {
+      "type": "textarea",
+      "label": "Votre message / Détails de la demande",
+      "col": "full",
+      "required": true,
+      "placeholder": "Décrivez votre demande en quelques lignes…",
+      "help": "Précisez votre demande, vos questions ou le contexte"
+    },
+    "societe": {
+      "type": "text",
+      "label": "Nom de votre société ou établissement",
+      "col": "half",
+      "required": false,
+      "placeholder": "Ex. Boulangerie du Moulin, SAS Gourmet…",
+      "help": "Enseigne, raison sociale ou boulangerie"
+    },
+    "profession": {
+      "type": "select",
+      "label": "Votre profession / Métier",
+      "col": "half",
+      "required": true,
+      "placeholder": "Sélectionnez votre métier…",
+      "help": "Votre rôle au sein de l'établissement",
+      "options": [
+        {
+          "id": "boulanger-patissier",
+          "label": "Boulanger - Pâtissier"
+        },
+        {
+          "id": "chaines",
+          "label": "Chaînés"
+        },
+        {
+          "id": "professionnel-de-la-grande-distribution",
+          "label": "Professionnel de la Grande Distribution"
+        },
+        {
+          "id": "distributeur",
+          "label": "Distributeur"
+        },
+        {
+          "id": "cash-carry",
+          "label": "Cash & Carry"
+        },
+        {
+          "id": "industriel",
+          "label": "Industriel"
+        },
+        {
+          "id": "centre-de-formation",
+          "label": "Centre de formation"
+        },
+        {
+          "id": "particulier",
+          "label": "Particulier"
+        },
+        {
+          "id": "autre",
+          "label": "Autre"
+        }
+      ]
+    },
+    "prenom": {
+      "type": "text",
+      "label": "Prénom",
+      "col": "half",
+      "required": true,
+      "placeholder": "Ex. Thomas",
+      "help": "Votre prénom"
+    },
+    "nom": {
+      "type": "text",
+      "label": "Nom",
+      "col": "half",
+      "required": true,
+      "placeholder": "Ex. Dupont",
+      "help": "Votre nom de famille"
+    },
+    "telephone": {
+      "type": "tel",
+      "label": "Téléphone",
+      "col": "half",
+      "required": true,
+      "placeholder": "Ex. 06 12 34 56 78",
+      "help": "Numéro direct pour vous joindre"
+    },
+    "email": {
+      "type": "email",
+      "label": "Adresse e-mail",
+      "col": "half",
+      "required": true,
+      "placeholder": "Ex. contact@votredomaine.fr",
+      "help": "Pour l'envoi de la confirmation et des documents"
+    },
+    "postal": {
+      "type": "csm_postal",
+      "label": "Code postal & Ville",
+      "col": "half",
+      "required": true,
+      "placeholder": "Ex. 75001",
+      "help": "Permet d'identifier votre secteur géographique"
+    },
+    "attachments": {
+      "type": "file",
+      "label": "Pièces jointes / CV / Photos",
+      "col": "full",
+      "required": false,
+      "help": "CV pour candidature (obligatoire), photo pour réclamation qualité"
+    },
+    "newsletter_optin": {
+      "type": "toggle",
+      "label": "Recevoir les communications CSM Ingrédients",
+      "col": "full",
+      "required": false,
+      "help": "1 à 2 e-mails par mois, désinscription en 1 clic"
+    },
+    "preferred_channel": {
+      "type": "select",
+      "label": "Canal de contact privilégié",
+      "col": "half",
+      "required": false,
+      "placeholder": "Choisissez...",
+      "help": "Comment préférez-vous être contacté ?",
+      "options": [
+        {
+          "id": "telephone",
+          "label": "Téléphone"
+        },
+        {
+          "id": "e-mail",
+          "label": "E-mail"
+        },
+        {
+          "id": "rendez-vous-boutique",
+          "label": "Rendez-vous boutique"
+        }
+      ]
+    },
+    "annual_volume": {
+      "type": "select",
+      "label": "Consommation annuelle estimée",
+      "col": "half",
+      "required": false,
+      "placeholder": "Choisissez...",
+      "help": "Volume indicatif de matières utilisées par an",
+      "options": [
+        {
+          "id": "moins-de-2-tonnes",
+          "label": "Moins de 2 tonnes"
+        },
+        {
+          "id": "entre-2-et-10-tonnes",
+          "label": "Entre 2 et 10 tonnes"
+        },
+        {
+          "id": "plus-de-10-tonnes",
+          "label": "Plus de 10 tonnes"
+        }
+      ]
+    },
+    "custom_question": {
+      "type": "textarea",
+      "label": "Précision ou contrainte spécifique",
+      "col": "full",
+      "required": false,
+      "placeholder": "Indiquez toute précision utile...",
+      "help": "Champ libre pour tout besoin particulier"
+    }
+  }
+}

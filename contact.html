@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact | CSM Ingredients France</title>
+  <link rel="stylesheet" href="css/contact-form.css?v=prod-57" />
+      <style>
+    /* Vue Desktop : Tout tient dans la hauteur de l'écran (100vh).
+       ZÉRO double scroll de la page : tout est visible directement. */
+    @media (min-width: 769px) {
+      html, body {
+        height: 100vh;
+        max-height: 100vh;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+      }
+
+      /* Espace vide réservé pour anticiper le header du site CSM (~58px) */
+      .csm-site-header-space {
+        height: 58px;
+        flex-shrink: 0;
+        width: 100%;
+        background: transparent;
+      }
+
+      .csm-contact-hero {
+        flex-shrink: 0;
+        width: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      .csm-contact-hero img {
+        width: 100%;
+        height: 118px; /* Bannière compacte et soignée */
+        object-fit: cover;
+        object-position: center;
+        display: block;
+      }
+
+      .csm-contact-page-container {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        max-width: 1080px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0.45rem 1.25rem 0.45rem; /* Espace modéré et propre sous la bannière */
+        box-sizing: border-box;
+      }
+
+      #csm-contact-form-root {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+    }
+
+    @media (min-width: 769px) and (max-height: 800px) {
+      .csm-site-header-space {
+        height: 48px;
+      }
+      .csm-contact-hero img {
+        height: 90px;
+      }
+      .csm-contact-page-container {
+        padding: 0.25rem 1rem 0.25rem;
+      }
+    }
+
+    /* Vue Mobile (< 768px) : Défilement naturel au toucher */
+    @media (max-width: 768px) {
+      .csm-site-header-space {
+        height: 0;
+        display: none;
+      }
+
+      html, body {
+        height: auto !important;
+        min-height: 100% !important;
+        max-height: none !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
+      .csm-contact-hero {
+        width: 100%;
+        margin: 0 0 0.85rem 0;
+        overflow: hidden;
+      }
+
+      .csm-contact-hero img {
+        width: 100%;
+        height: 130px;
+        object-fit: cover;
+        object-position: center;
+        display: block;
+      }
+
+      .csm-contact-page-container {
+        max-width: 1080px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0 0.85rem 2rem;
+        box-sizing: border-box;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Espace réservé pour anticiper le header du site CSM (~58px) -->
+  <div class="csm-site-header-space" aria-hidden="true"></div>
+
+  <!-- 1. En-tête fidèle au site officiel csmingredients.com/france (~60px) -->
+  <div class="csm-contact-hero">
+    <img src="assets/laptop-contact-form.webp" onerror="this.onerror=null;this.src='assets/contact-banner.png'" alt="CSM Ingredients France - Contact" />
+  </div>
+
+  <div class="csm-contact-page-container">
+    <!-- Formulaire interactif et carte commerciale -->
+    <main id="csm-contact-form-root" data-web3forms-key="30a6ee65-e232-4c5a-8c8c-4e7c9570872c" aria-label="Formulaire de contact CSM Ingredients"></main>
+  </div>
+
+  <script>
+    // Avertissement si le fichier est ouvert en local sans serveur web
+    if (window.location.protocol === 'file:') {
+      const warning = document.createElement('div');
+      warning.style.cssText = 'margin:1.5rem auto;max-width:1040px;padding:1rem 1.25rem;border:1px solid #b00020;border-radius:10px;background:#fff5f5;color:#7a0015;font-size:0.95rem;line-height:1.5;';
+      warning.innerHTML = '<strong>Important :</strong> En ouvrant le fichier directement par double-clic (protocole <code>file://</code>), le navigateur bloque les scripts et les données JSON par sécurité.<br>' +
+        'Pour tester en local : lancez <code>demarrer-serveur.bat</code> puis ouvrez <a href="http://127.0.0.1:3000/contact.html" style="color:#b00020;font-weight:700;">http://127.0.0.1:3000/contact.html</a>.';
+      document.querySelector('.csm-contact-page-container')?.prepend(warning);
+    }
+  </script>
+
+  <script type="module">
+    if (window.location.protocol === 'file:') throw new Error('Utilisez un serveur local pour tester');
+
+    import { ContactForm } from './js/form.js?v=prod-57';
+
+    async function bootstrap() {
+      const configRes = await fetch('data/form-config.json', { cache: 'no-store' }).catch(() => null);
+      const config = configRes && configRes.ok ? await configRes.json().catch(() => null) : null;
+
+      const formRoot = document.getElementById('csm-contact-form-root');
+
+      const params = new URLSearchParams(window.location.search);
+      let submitUrl = formRoot.dataset.submitUrl || params.get('submitUrl') || params.get('endpoint') || '';
+      const web3formsKey = formRoot.dataset.web3formsKey || params.get('key') || params.get('web3forms_key') || params.get('access_key') || '30a6ee65-e232-4c5a-8c8c-4e7c9570872c';
+      if (web3formsKey && !submitUrl) {
+        submitUrl = 'https://api.web3forms.com/submit';
+      }
+      const clientLookupUrl = formRoot.dataset.clientLookupUrl || params.get('clientLookupUrl') || params.get('lookupUrl') || '';
+
+      const form = new ContactForm(formRoot, {}, null, { submitUrl, web3formsKey, config, clientLookupUrl });
+      form.init();
+    }
+
+    bootstrap().catch((err) => {
+      console.error('[CSM Contact]', err);
+      document.getElementById('csm-contact-form-root').innerHTML =
+        '<p role="alert">Le formulaire est momentanément indisponible. Merci de nous contacter directement au 0 800 616 816.</p>';
+    });
+  </script>
+</body>
+</html>
