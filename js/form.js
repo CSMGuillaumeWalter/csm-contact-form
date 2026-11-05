@@ -670,9 +670,8 @@ export class ContactForm {
     if (web3formsKey) {
       payload.append('access_key', web3formsKey);
       payload.append('from_name', 'CSM Ingredients France');
-      payload.append('name', fullName);
-      payload.append('phone', this.state.telephone || '');
       if (this.state.email) {
+        payload.append('email', this.state.email);
         payload.append('replyto', this.state.email);
       }
       payload.append('subject', emailSubject);
