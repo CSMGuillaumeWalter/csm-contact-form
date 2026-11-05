@@ -130,7 +130,17 @@
 
   <div class="csm-contact-page-container">
     <!-- Formulaire interactif et carte commerciale -->
-    <main id="csm-contact-form-root" data-web3forms-key="30a6ee65-e232-4c5a-8c8c-4e7c9570872c" aria-label="Formulaire de contact CSM Ingredients"></main>
+    <!-- Configuration de déploiement CSM :
+         - data-submit-url : Laissez vide pour utiliser Web3Forms en test, ou mettez l'URL de votre serveur/API CSM en production
+         - data-web3forms-key : Clé d'envoi Web3Forms (utilisée si submit-url est vide)
+         - data-recaptcha-key : Clé de site Google reCAPTCHA v3/v2 pour bloquer les bots (optionnel)
+         - data-turnstile-key : Clé de site Cloudflare Turnstile (alternative moderne à reCAPTCHA) -->
+    <main id="csm-contact-form-root"
+          data-submit-url=""
+          data-web3forms-key="30a6ee65-e232-4c5a-8c8c-4e7c9570872c"
+          data-recaptcha-key=""
+          data-turnstile-key=""
+          aria-label="Formulaire de contact CSM Ingredients"></main>
   </div>
 
   <script>
@@ -162,8 +172,17 @@
         submitUrl = 'https://api.web3forms.com/submit';
       }
       const clientLookupUrl = formRoot.dataset.clientLookupUrl || params.get('clientLookupUrl') || params.get('lookupUrl') || '';
+      const recaptchaSiteKey = formRoot.dataset.recaptchaKey || formRoot.dataset.recaptchaSiteKey || params.get('recaptchaKey') || '';
+      const turnstileSiteKey = formRoot.dataset.turnstileKey || formRoot.dataset.turnstileSiteKey || params.get('turnstileKey') || '';
 
-      const form = new ContactForm(formRoot, {}, null, { submitUrl, web3formsKey, config, clientLookupUrl });
+      const form = new ContactForm(formRoot, {}, null, {
+        submitUrl,
+        web3formsKey,
+        config,
+        clientLookupUrl,
+        recaptchaSiteKey,
+        turnstileSiteKey
+      });
       form.init();
     }
 

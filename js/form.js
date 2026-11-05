@@ -180,6 +180,7 @@ export class ContactForm {
       submitUrl: options.submitUrl || '',
       web3formsKey: options.web3formsKey || options.accessKey || '',
       recaptchaSiteKey: options.recaptchaSiteKey || '',
+      turnstileSiteKey: options.turnstileSiteKey || '',
       minSubmitIntervalMs: options.minSubmitIntervalMs ?? SUBMIT_INTERVAL_MS,
       clientLookupUrl: options.clientLookupUrl || options.config?.general?.clientLookupUrl || '',
       ...options,
@@ -612,7 +613,170 @@ export class ContactForm {
     }
   }
 
-  buildFormData(recaptchaToken = '') {
+  generateConfirmationEmail() {
+    const intentId = this.state.intent || 'autre';
+    const fullName = `${this.state.prenom || ''} ${this.state.nom || ''}`.trim() || 'Madame, Monsieur';
+    const company = this.state.societe ? ` (${this.state.societe})` : '';
+    const cp = (this.state.postalCode || '').trim();
+    const dept = getDepartementFromPostalCode(cp);
+    const regId = getRegionFromPostalCode(cp) || this.state.assignedRegion?.id || '';
+    const regName = regId ? (REGION_LABELS[regId] || this.state.assignedRegion?.name || regId) : (this.state.assignedRegion?.name || '');
+    const locationStr = regName ? `${regName}${dept ? ` (Département ${dept})` : ''}` : (cp ? `CP ${cp}` : '');
+
+    let subject = '';
+    let introLead = '';
+    let treatmentInfo = '';
+    const specificDetails = [];
+
+    switch (intentId) {
+      case 'contact_commercial':
+        subject = '[CSM Ingredients France] Confirmation de votre demande de rappel commercial';
+        introLead = `Nous vous confirmons la bonne réception de votre demande de mise en relation avec le conseiller commercial CSM Ingredients de votre secteur${locationStr ? ` (${locationStr})` : ''}.`;
+        treatmentInfo = 'Votre conseiller commercial prendra contact avec vous directement par téléphone sous 24 à 48h ouvrées pour faire le point sur vos besoins et vous accompagner.';
+        if (this.state.telephone) specificDetails.push(`Téléphone de rappel : ${this.state.telephone}`);
+        if (locationStr) specificDetails.push(`Secteur géographique : ${locationStr}`);
+        break;
+
+      case 'conseil_produit':
+        subject = '[CSM Ingredients France] Confirmation : Votre question technique / recette';
+        introLead = 'Nous accusons réception de votre demande d\'information technique concernant nos ingrédients, recettes ou disponibilités produits.';
+        treatmentInfo = 'Nos experts techniques et conseillers culinaires étudient votre question avec soin. Une réponse complète vous sera adressée par e-mail ou par téléphone sous 24 à 48h ouvrées.';
+        if (this.state.productInterest) specificDetails.push(`Produit ou recette : ${this.state.productInterest}`);
+        break;
+
+      case 'qualite_livraison':
+        subject = '[CSM Ingredients France] Prise en charge de votre signalement qualité / livraison';
+        introLead = 'Nous avons bien pris en compte votre signalement concernant une livraison ou un produit CSM Ingredients.';
+        treatmentInfo = 'Notre service Qualité & Logistique examine votre dossier en priorité. Un responsable vous apportera une réponse par e-mail ou par téléphone dans les plus brefs délais.';
+        if (this.state.commande) specificDetails.push(`Numéro de commande : ${this.state.commande}`);
+        if (this.state.lot) specificDetails.push(`Numéro de lot : ${this.state.lot}`);
+        break;
+
+      case 'animation_magasin':
+        subject = '[CSM Ingredients France] Confirmation : Votre projet d\'animation commerciale';
+        introLead = 'Nous confirmons la bonne réception de votre demande d\'animation en point de vente ou de fourniture de matériel promotionnel.';
+        treatmentInfo = 'Notre responsable d\'animation commerciale régionale va analyser votre demande et vous recontactera par e-mail ou par téléphone pour planifier l\'opération.';
+        if (locationStr) specificDetails.push(`Secteur du point de vente : ${locationStr}`);
+        break;
+
+      case 'proposition':
+        subject = '[CSM Ingredients France] Confirmation : Réception de votre proposition commerciale';
+        introLead = 'Nous vous remercions pour l\'intérêt que vous portez à CSM Ingredients France et confirmons la réception de votre proposition.';
+        treatmentInfo = 'Votre offre a été transmise aux services Achats et Développement concernés. Si votre proposition répond à nos besoins actuels, nos équipes reviendront vers vous par e-mail.';
+        if (this.state.other_topic) specificDetails.push(`Sujet de la proposition : ${this.state.other_topic}`);
+        break;
+
+      case 'candidature':
+        subject = '[CSM Ingredients France] Confirmation de réception de votre candidature';
+        introLead = 'Nous vous remercions pour l\'intérêt que vous portez à CSM Ingredients France et vous confirmons la bonne réception de votre candidature spontanée.';
+        treatmentInfo = 'Notre équipe Ressources Humaines étudie votre profil avec attention. Si une opportunité correspond à vos compétences et aspirations, nous ne manquerons pas de vous contacter par e-mail ou par téléphone.';
+        if (this.state.target_position) specificDetails.push(`Poste visé : ${this.state.target_position}`);
+        if (this.state.contract_type) specificDetails.push(`Type de contrat : ${this.getContractTypeLabel()}`);
+        break;
+
+      case 'autre':
+      default:
+        subject = '[CSM Ingredients France] Confirmation de réception de votre message';
+        introLead = 'Nous vous confirmons la bonne réception de votre message transmis via notre formulaire de contact.';
+        treatmentInfo = 'Notre équipe étudie votre demande et vous apportera une réponse personnalisée par e-mail ou téléphone sous 24 à 48h ouvrées.';
+        if (this.state.other_topic) specificDetails.push(`Sujet : ${this.state.other_topic}`);
+        break;
+    }
+
+    const clientMsg = (this.state.message || '').trim();
+
+    const textLines = [
+      `Bonjour ${fullName},`,
+      '',
+      introLead,
+      '',
+      `ℹ️ MODALITÉS DE TRAITEMENT :`,
+      treatmentInfo,
+      '',
+      '==================================================',
+      'RÉCAPITULATIF DE VOTRE DEMANDE',
+      '==================================================',
+      `Demandeur : ${fullName}${company}`,
+      `E-mail    : ${this.state.email || 'Non renseigné'}`,
+      `Téléphone : ${this.state.telephone || 'Non renseigné'}`,
+      ...specificDetails,
+      '',
+      clientMsg ? `Votre message :\n« ${clientMsg} »` : '(Demande transmise sans message additionnel)',
+      '==================================================',
+      '',
+      'Pour toute urgence ou question complémentaire, notre service client reste à votre disposition :',
+      '📞 Numéro Vert gratuit : 0 800 616 816 (du lundi au vendredi)',
+      '✉️ E-mail : info.france@csmingredients.com',
+      '🌐 Site web : https://www.csmingredients.com/france',
+      '',
+      'Cordialement,',
+      'L\'équipe CSM Ingredients France'
+    ];
+
+    const bodyText = textLines.join('\n');
+
+    const detailsRowsHtml = specificDetails.map((d) => {
+      const parts = d.split(' : ');
+      return `<p style="margin: 4px 0; font-size: 14px; color: #334155;"><strong>${parts[0]} :</strong> ${parts[1] || ''}</p>`;
+    }).join('');
+
+    const bodyHtml = `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>${subject}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1e293b; background-color: #f8fafc; margin: 0; padding: 24px;">
+  <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+    <div style="background-color: #007cbd; padding: 24px 32px; text-align: left;">
+      <h1 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.2px;">CSM Ingredients France</h1>
+      <p style="color: #e0f2fe; margin: 6px 0 0 0; font-size: 13px;">Accusé de réception de votre demande</p>
+    </div>
+    <div style="padding: 32px;">
+      <p style="font-size: 16px; font-weight: 600; color: #0f172a; margin-top: 0;">Bonjour ${fullName},</p>
+      <p style="font-size: 15px; color: #334155; margin-bottom: 16px;">${introLead}</p>
+      
+      <div style="background-color: #eef6fb; border-left: 4px solid #007cbd; padding: 14px 18px; border-radius: 4px; margin: 20px 0;">
+        <p style="margin: 0; font-size: 14px; color: #0369a1; font-weight: 500;">
+          ℹ️ <strong>Traitement de votre demande :</strong><br/>
+          ${treatmentInfo}
+        </p>
+      </div>
+
+      <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px 20px; margin: 24px 0;">
+        <h3 style="margin: 0 0 12px 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b;">Récapitulatif de votre demande</h3>
+        <p style="margin: 4px 0; font-size: 14px; color: #334155;"><strong>Contact :</strong> ${fullName}${company}</p>
+        <p style="margin: 4px 0; font-size: 14px; color: #334155;"><strong>E-mail :</strong> ${this.state.email || 'Non renseigné'}</p>
+        <p style="margin: 4px 0; font-size: 14px; color: #334155;"><strong>Téléphone :</strong> ${this.state.telephone || 'Non renseigné'}</p>
+        ${detailsRowsHtml}
+        ${clientMsg ? `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #cbd5e1;"><p style="margin: 0 0 4px 0; font-size: 12px; color: #64748b; font-weight: 600;">VOTRE MESSAGE :</p><p style="margin: 0; font-size: 14px; font-style: italic; color: #334155;">« ${clientMsg.replace(/\n/g, '<br/>')} »</p></div>` : ''}
+      </div>
+
+      <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 24px;">
+        <p style="font-size: 13px; color: #64748b; margin: 0 0 8px 0;">Besoin d\'une assistance immédiate ?</p>
+        <p style="font-size: 14px; margin: 0 0 4px 0;">📞 <strong>Numéro Vert gratuit :</strong> <a href="tel:0800616816" style="color: #007cbd; text-decoration: none;">0 800 616 816</a> (du lundi au vendredi)</p>
+        <p style="font-size: 14px; margin: 0;">✉️ <strong>E-mail :</strong> <a href="mailto:info.france@csmingredients.com" style="color: #007cbd; text-decoration: none;">info.france@csmingredients.com</a></p>
+      </div>
+    </div>
+    <div style="background-color: #f1f5f9; padding: 16px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+      <p style="margin: 0; font-size: 12px; color: #64748b;">CSM Ingredients France — <a href="https://www.csmingredients.com/france" style="color: #007cbd; text-decoration: none;" target="_blank">www.csmingredients.com</a></p>
+    </div>
+  </div>
+</body>
+</html>`.trim();
+
+    return {
+      subject,
+      text: bodyText,
+      html: bodyHtml,
+      to: this.state.email || '',
+      intentId,
+      treatmentInfo
+    };
+  }
+
+    buildFormData(recaptchaToken = '') {
     const payload = new FormData();
     const web3formsKey = this.options.web3formsKey || this.options.accessKey || '';
     const fullName = `${this.state.prenom || ''} ${this.state.nom || ''}`.trim() || 'Client CSM';
@@ -677,9 +841,22 @@ export class ContactForm {
       payload.append('subject', emailSubject);
     }
 
-    // 4. Message unique et auto-suffisant (évite toute répétition de champs)
+    // 4. Message unique et auto-suffisant pour l'équipe interne CSM
     payload.append('message', summaryLines);
 
+    // 5. Modèle d'e-mail de confirmation (Accusé de réception adapté au motif pour le client)
+    const confMail = this.generateConfirmationEmail();
+    if (this.state.email) {
+      payload.append('confirmation_to', this.state.email);
+      payload.append('confirmation_subject', confMail.subject);
+      payload.append('confirmation_body', confMail.text);
+      payload.append('confirmation_html', confMail.html);
+      payload.append('motif_id', this.state.intent || '');
+      payload.append('motif_label', this.getIntentConfig()?.label || '');
+    }
+
+    // 6. Anti-bot & Captcha
+    payload.append('botcheck', '');
     if (recaptchaToken) payload.append('recaptchaToken', recaptchaToken);
 
     if (this.state.attachments && this.state.attachments.length > 0) {
