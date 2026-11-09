@@ -707,7 +707,7 @@ label.csm-intent-card.csm-intent-card--visual input,
 
 .csm-intent-card--visual[data-intent="contact_commercial"] .csm-intent-card__img,
 .csm-intent-card--contact_commercial .csm-intent-card__img {
-  object-position: center 82% !important;
+  object-position: center 25% !important;
 }
 
 .csm-intent-card--visual .csm-intent-card__media-badge {
