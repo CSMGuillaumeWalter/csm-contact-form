@@ -823,35 +823,56 @@ export class ContactForm {
       '=================================================='
     ].filter(Boolean).join('\n');
 
-    // 3. Configuration Web3Forms
+    // 3. Configuration Web3Forms & En-tête standard
     if (web3formsKey) {
-      payload.append('access_key', web3formsKey);
-      payload.append('from_name', 'CSM Ingredients France');
+      payload.append("access_key", web3formsKey);
+      payload.append("from_name", "CSM Ingredients France");
+      payload.append("name", fullName);
+      payload.append("phone", this.state.telephone || "");
       if (this.state.email) {
-        payload.append('email', this.state.email);
-        payload.append('replyto', this.state.email);
+        payload.append("email", this.state.email);
+        payload.append("replyto", this.state.email);
       }
-      payload.append('subject', emailSubject);
+      payload.append("subject", emailSubject);
     }
 
     // 4. Message unique et auto-suffisant pour l'équipe interne CSM
-    payload.append('message', summaryLines);
+    payload.append("message", summaryLines);
 
-    // 5. Modèle d'e-mail de confirmation (Accusé de réception adapté au motif pour le client)
+    // 5. Données structurées pour API, Webhook, base de données ou tableur IT
+    payload.append("nom", this.state.nom || "");
+    payload.append("prenom", this.state.prenom || "");
+    payload.append("nom_complet", fullName);
+    payload.append("telephone", this.state.telephone || "");
+    payload.append("email", this.state.email || "");
+    if (this.state.societe) payload.append("societe", this.state.societe);
+    if (this.state.profession) payload.append("profession", this.getProfessionLabel());
+    payload.append("code_postal", cp);
+    if (regName) payload.append("region", regName);
+    if (dept) payload.append("departement", dept);
+    payload.append("motif_id", this.state.intent || "");
+    payload.append("motif_label", this.getIntentConfig()?.label || "");
+    if (this.state.productInterest) payload.append("produit_ou_recette", this.state.productInterest);
+    if (this.state.target_position) payload.append("poste_vise", this.state.target_position);
+    if (this.state.contract_type) payload.append("type_contrat", this.getContractTypeLabel());
+    if (this.state.other_topic) payload.append("sujet", this.state.other_topic);
+    if (this.state.client_type) payload.append("type_etablissement", this.getClientTypeLabel());
+    if (this.state.is_client) payload.append("deja_client", "true");
+    payload.append("newsletter_optin", this.state.newsletter_optin ? "true" : "false");
+    payload.append("date_soumission", new Date().toISOString());
+
+    // 6. Modèle d'e-mail de confirmation (Accusé de réception adapté au motif pour le client)
     const confMail = this.generateConfirmationEmail();
     if (this.state.email) {
-      payload.append('confirmation_to', this.state.email);
-      payload.append('confirmation_subject', confMail.subject);
-      payload.append('confirmation_body', confMail.text);
-      payload.append('confirmation_html', confMail.html);
-      payload.append('motif_id', this.state.intent || '');
-      payload.append('motif_label', this.getIntentConfig()?.label || '');
+      payload.append("confirmation_to", this.state.email);
+      payload.append("confirmation_subject", confMail.subject);
+      payload.append("confirmation_body", confMail.text);
+      payload.append("confirmation_html", confMail.html);
     }
 
-    // 6. Anti-bot & Captcha
-    payload.append('botcheck', '');
-    if (recaptchaToken) payload.append('recaptchaToken', recaptchaToken);
-
+    // 7. Anti-bot & Captcha
+    payload.append("botcheck", "");
+    if (recaptchaToken) payload.append("recaptchaToken", recaptchaToken);
     if (this.state.attachments && this.state.attachments.length > 0) {
       payload.append('pieces_jointes', this.state.attachments.map((a) => a.file.name).join(', '));
       this.state.attachments.forEach((entry, index) => {
