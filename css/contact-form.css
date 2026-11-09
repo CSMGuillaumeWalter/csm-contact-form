@@ -702,12 +702,12 @@ label.csm-intent-card.csm-intent-card--visual input,
 /* Positionnement fin du cadrage par motif */
 .csm-intent-card--visual[data-intent="candidature"] .csm-intent-card__img,
 .csm-intent-card--candidature .csm-intent-card__img {
-  object-position: center 10% !important;
+  object-position: center 20% !important;
 }
 
 .csm-intent-card--visual[data-intent="contact_commercial"] .csm-intent-card__img,
 .csm-intent-card--contact_commercial .csm-intent-card__img {
-  object-position: center 15% !important;
+  object-position: center 25% !important;
 }
 
 .csm-intent-card--visual .csm-intent-card__media-badge {
