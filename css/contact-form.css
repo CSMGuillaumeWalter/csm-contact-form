@@ -699,6 +699,17 @@ label.csm-intent-card.csm-intent-card--visual input,
   transform: scale(1.05);
 }
 
+/* Positionnement fin du cadrage par motif */
+.csm-intent-card--visual[data-intent="candidature"] .csm-intent-card__img,
+.csm-intent-card--candidature .csm-intent-card__img {
+  object-position: center 10% !important;
+}
+
+.csm-intent-card--visual[data-intent="contact_commercial"] .csm-intent-card__img,
+.csm-intent-card--contact_commercial .csm-intent-card__img {
+  object-position: center 15% !important;
+}
+
 .csm-intent-card--visual .csm-intent-card__media-badge {
   position: absolute;
   bottom: 6px;

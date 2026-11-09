@@ -2170,7 +2170,7 @@ export class ContactForm {
             <div class="csm-intent-grid csm-intent-grid--visual" role="radiogroup" aria-label="Sujet de votre demande">
               ${this.getIntents().map(
                 (item) => `
-                <label class="csm-intent-card csm-intent-card--visual ${this.state.intent === item.id ? 'is-selected' : ''}">
+                <label class="csm-intent-card csm-intent-card--visual csm-intent-card--${item.id} ${this.state.intent === item.id ? 'is-selected' : ''}" data-intent="${item.id}">
                   <input type="radio" name="intent" value="${item.id}" ${this.state.intent === item.id ? 'checked' : ''} />
                   <div class="csm-intent-card__media">
                     <img src="${this.getIntentImage(item.id)}" alt="${attr(item.label)}" class="csm-intent-card__img" loading="lazy" />
