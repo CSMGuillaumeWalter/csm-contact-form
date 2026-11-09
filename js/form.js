@@ -2149,14 +2149,15 @@ export class ContactForm {
   }
 
   getIntentImage(intentId) {
+    const v = '?v=prod-64';
     const map = {
-      contact_commercial: 'assets/intent-commercial.webp',
-      conseil_produit: 'assets/intent-produit.webp',
-      proposition: 'assets/intent-partenariat.webp',
-      candidature: 'assets/intent-recrutement.webp',
-      autre: 'assets/intent-autre.webp',
+      contact_commercial: 'assets/intent-commercial.webp' + v,
+      conseil_produit: 'assets/intent-produit.webp' + v,
+      proposition: 'assets/intent-partenariat.webp' + v,
+      candidature: 'assets/intent-recrutement.webp' + v,
+      autre: 'assets/intent-autre.webp' + v,
     };
-    return map[intentId] || 'assets/contact-banner.png';
+    return map[intentId] || ('assets/contact-banner.png' + v);
   }
 
   renderStepContent() {
