@@ -2149,7 +2149,7 @@ export class ContactForm {
   }
 
   getIntentImage(intentId) {
-    const v = '?v=prod-64';
+    const v = '?v=prod-65';
     const map = {
       contact_commercial: 'assets/intent-commercial.webp' + v,
       conseil_produit: 'assets/intent-produit.webp' + v,
